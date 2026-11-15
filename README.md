@@ -59,12 +59,19 @@ P(прорыв через ПРО): 80.04%
 Средний ущерб: 0.7987
 Графики и гистограммы распределния:
 <img width="583" height="593" alt="image" src="https://github.com/user-attachments/assets/7ffd4454-ddfc-45f5-98af-fedcb4fdc4e6" />
+
 Рис. 1. Распределение точек падения ракет
+
 <img width="668" height="274" alt="image" src="https://github.com/user-attachments/assets/6f14e7e1-a10e-4f75-a14d-594be66caa38" />
+
 Рис. 2. Гистограмма распределения ущерба
+
 <img width="682" height="433" alt="image" src="https://github.com/user-attachments/assets/018ad244-8dbd-483d-abf9-024607f8ff83" />
+
 Рис. 3. График чувствительности прорыва от радиуса ПРО
+
 <img width="587" height="573" alt="image" src="https://github.com/user-attachments/assets/64d3eb48-b46e-4f17-b44b-4ae0e7a2155f" />
+
 Рис. 4. Карта плотности вероятности падения
 
 
