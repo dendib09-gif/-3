@@ -1,0 +1,89 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle, Circle
+
+
+rng = np.random.default_rng(seed=2024)
+
+
+Rc = 100.0      
+Cc = Rc / 2.0   
+S  = 15.0       
+Rk = 25.0        
+Rp = 10.0      
+
+N_SIM = 500000  
+N_VIS = 8000   
+
+def run_simulation():
+    fall_x = rng.normal(loc=Cc, scale=S, size=N_SIM)
+    fall_y = rng.normal(loc=Cc, scale=S, size=N_SIM)
+
+    in_city = (fall_x >= 0) & (fall_x <= Rc) & (fall_y >= 0) & (fall_y <= Rc)
+    P_city = np.mean(in_city)
+
+    d_center = np.sqrt((fall_x - Cc)**2 + (fall_y - Cc)**2)
+
+    is_intercepted = d_center <= Rp
+    P_leak = np.mean(~is_intercepted)
+    damage = in_city & (~is_intercepted)
+    P_damage = np.mean(damage)
+
+    fig, ax = plt.subplots(figsize=(9, 9))
+    xp = fall_x[:N_VIS]; yp = fall_y[:N_VIS]
+    hp = in_city[:N_VIS]; ip = is_intercepted[:N_VIS]; dp = damage[:N_VIS]
+
+    ax.scatter(xp[~hp], yp[~hp], s=3, c='gray', alpha=0.3, label='Вне города')
+    ax.scatter(xp[hp & ip], yp[hp & ip], s=5, c='dodgerblue', alpha=0.6, label='Перехвачены')
+    ax.scatter(xp[dp], yp[dp], s=8, c='crimson', alpha=0.8, label='Ущерб')
+
+    ax.add_patch(Rectangle((0, 0), Rc, Rc, lw=2, ec='black', fc='none', label='Город'))
+    ax.add_patch(Circle((Cc, Cc), Rp, ec='blue', fc='none', lw=2, ls='--', label=f'ПРО (Rp={Rp})'))
+    ax.add_patch(Circle((Cc, Cc), Rk, ec='red', fc='none', lw=1.5, ls=':', label=f'Поражение (Rk={Rk})'))
+
+    ax.set_xlim(-20, Rc + 20); ax.set_ylim(-20, Rc + 20)
+    ax.set_aspect('equal')
+    ax.set_title(f'Модель ПРО\nP(город)={P_city:.3f} | P(прорыв)={P_leak:.3f} | Ущерб={P_damage:.3f}', fontsize=12)
+    ax.legend(loc='upper left', fontsize=9)
+    plt.grid(alpha=0.2); plt.tight_layout(); plt.show()
+
+    fig1, (a1, a2) = plt.subplots(1, 2, figsize=(12, 5))
+    for a, data, c, name in [(a1, fall_x, 'steelblue', 'X'), (a2, fall_y, 'coral', 'Y')]:
+        a.hist(data, bins=50, color=c, alpha=0.7, density=True)
+        a.axvline(Cc, color='red', ls='--', label='Центр')
+        a.axvline(0, color='black', ls=':', label='Границы')
+        a.axvline(Rc, color='black', ls=':')
+        a.set_title(f'Распределение по {name}'); a.set_xlabel(f'{name} (км)')
+        a.set_ylabel('Плотность'); a.legend(); a.grid(alpha=0.3)
+    plt.tight_layout(); plt.show()
+
+    radii = np.linspace(0, 60, 40)
+    probs = []
+    test_d = d_center[:200_000]; test_h = in_city[:200_000]
+    for r in radii:
+        probs.append(np.mean(test_h & ~(test_d <= r)))
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(radii, probs, 'b-', lw=2)
+    plt.axvline(Rp, color='red', ls='--', label=f'Текущий Rp={Rp}')
+    plt.xlabel('Радиус перехвата Rp (км)'); plt.ylabel('Вероятность прорыва')
+    plt.title('Чувствительность к радиусу ПРО'); plt.legend(); plt.grid(alpha=0.3); plt.show()
+
+    plt.figure(figsize=(9, 9))
+    h = plt.hist2d(fall_x[:200_000], fall_y[:200_000], bins=100, cmap='hot', density=True)
+    plt.colorbar(h[3], label='Плотность')
+    for v in [0, Rc]: plt.axhline(v, color='cyan', lw=1); plt.axvline(v, color='cyan', lw=1)
+    plt.title('Тепловая карта падений'); plt.xlabel('X (км)'); plt.ylabel('Y (км)')
+    plt.axis('equal'); plt.xlim(-20, Rc + 20); plt.ylim(-20, Rc + 20); plt.show()
+
+    print("=" * 50)
+    print("РЕЗУЛЬТАТЫ СИМУЛЯЦИИ ПРО")
+    print("=" * 50)
+    print(f"Всего испытаний: {N_SIM}")
+    print(f"P(попадание в город): {P_city:.2%}")
+    print(f"P(прорыв через ПРО): {P_leak:.2%}")
+    print(f"Средний ущерб: {P_damage:.4f}")
+    print("=" * 50)
+
+if __name__ == "__main__":
+    run_simulation()
